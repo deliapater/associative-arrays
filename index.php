@@ -47,14 +47,23 @@ $users = array(
     array("name" => "Bob", "age" => 30, "country" => "UK"),
     array("name" => "Charlie", "age" => 28, "country" => "Canada"),
 );
-// Step 2: Convert PHP array to JSON and pass it to Javascript
+
+// Step 2: Use built-in functions to modify data
+$users =  array_map(function($user) {
+    return [
+        "name" => strtoupper($user["name"]), // Convert name to uppercaase
+        "age" => $user["age"],
+        "country" => ucfirst($user["country"]) // Capitalize first letter
+    ];
+}, $users);
+// Step 3: Convert PHP array to JSON and pass it to Javascript
 $jsonData = json_encode($users);
 
 echo "<script>let users = $jsonData;</script>";
 ?>
 
 <script>
-// Step 3: Use JavaScript to manipulate and display the data
+// Step 4: Use JavaScript to manipulate and display the data
 document.addEventListener("DOMContentLoaded", function () {
     let tableBody = document.getElementById("userTable");
 
