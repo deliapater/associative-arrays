@@ -41,14 +41,46 @@
 </table>
 
 <?php
-// Step 1: Create an associative array in PHP
-$users = array(
-    array("name" => "Alice", "age" => 25, "country" => "USA"),
-    array("name" => "Bob", "age" => 30, "country" => "UK"),
-    array("name" => "Charlie", "age" => 28, "country" => "Canada"),
-);
+//Step 1: Define the User interface (Blueprint for user types)
+interface User {
+    public function getRole();
+}
 
-// Step 2: Use built-in functions to modify data
+//Step 2: Create Concrete Classes (Admin and Guest)
+class Admin implements User {
+    public function getRole() {
+        return "Admin";
+    }
+}
+
+class Guest implements User {
+    public function getRole() {
+        return "Guest";
+    }
+}
+
+//Step 3: Factory Class to Create Users
+class UserFactory {
+public static function createUser($type) {
+    switch ($type) {
+        case "admin":
+            return new Admin();
+        case "guest":
+            return new Guest();
+        default:
+        throw new Expection("Invalid user type");
+        }
+    }
+}
+//Step 4: Create Users using the Factory
+$users = [
+    ["name" => "Alice", "age" => 25, "country" => "UK", "role" => UserFactory::createUser("admin")->getRole()],
+    ["name" => "Bob", "age" => 25, "country" => "Venezuela", "role" => UserFactory::createUser("guest")->getRole()]
+];
+
+//Step 5: Convert to Json for Javascript
+echo "<script>let users = " . json_encode($users) . ";</script>";
+//Step 6: Use built-in functions to modify data
 $users =  array_map(function($user) {
     return [
         "name" => strtoupper($user["name"]), // Convert name to uppercaase
@@ -56,14 +88,10 @@ $users =  array_map(function($user) {
         "country" => ucfirst($user["country"]) // Capitalize first letter
     ];
 }, $users);
-// Step 3: Convert PHP array to JSON and pass it to Javascript
-$jsonData = json_encode($users);
-
-echo "<script>let users = $jsonData;</script>";
 ?>
 
 <script>
-// Step 4: Use JavaScript to manipulate and display the data
+//Step 7: Use JavaScript to manipulate and display the data
 document.addEventListener("DOMContentLoaded", function () {
     let tableBody = document.getElementById("userTable");
 
