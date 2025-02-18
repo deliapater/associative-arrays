@@ -16,7 +16,7 @@
             width: 50%;
             margin: auto;
             border-collapse: collapse;
-            background`: #333;
+            background: #333;
         }
         th, td {
             padding: 10px;
@@ -33,20 +33,19 @@
     <thead>
         <tr>
             <th>Name</th>
-            <th>Age</th>
-            <th>Country</th>
+            <th>Role</th>
         </tr>
     </thead>
     <tbody id="userTable"></tbody>
 </table>
 
 <?php
-//Step 1: Define the User interface (Blueprint for user types)
+//Define the User interface (Blueprint for user types)
 interface User {
     public function getRole();
 }
 
-//Step 2: Create Concrete Classes (Admin and Guest)
+//Create Concrete Classes (Admin and Guest)
 class Admin implements User {
     public function getRole() {
         return "Admin";
@@ -59,47 +58,63 @@ class Guest implements User {
     }
 }
 
-//Step 3: Factory Class to Create Users
+//Factory Class to Create Users
 class UserFactory {
-public static function createUser($type) {
+public static function createUser($type, $name) {
     switch ($type) {
         case "admin":
-            return new Admin();
+            return ["name" => $name, "role" => (new Admin())->getRole()];
         case "guest":
-            return new Guest();
+            return ["name" => $name, "role" => (new Guest())->getRole()];
         default:
-        throw new Expection("Invalid user type");
+        throw new Exception("Invalid user type");
         }
     }
 }
-//Step 4: Create Users using the Factory
-$users = [
-    ["name" => "Alice", "age" => 25, "country" => "UK", "role" => UserFactory::createUser("admin")->getRole()],
-    ["name" => "Bob", "age" => 25, "country" => "Venezuela", "role" => UserFactory::createUser("guest")->getRole()]
-];
+//Aggregate Pattern - Collection of Users
+class UserCollection {
+    private $users = [];
 
-//Step 5: Convert to Json for Javascript
-echo "<script>let users = " . json_encode($users) . ";</script>";
-//Step 6: Use built-in functions to modify data
+    public function addUser($user) {
+        $this->users[] = $user;
+    }
+
+    public function removeUser($name) {
+        $this->users = array_filter($this->users, function ($user) use ($name) {
+            return $user["name"] !== $name;
+        });
+    }
+
+    public function getUsers() {
+        return $this->users;
+    }
+}
+//Create UserCollection and Add Users
+$userCollection = new UserCollection();
+$userCollection->addUser(UserFactory::createUser("admin", "Alice"));
+$userCollection->addUser(UserFactory::createUser("guest", "Bob"));
+$userCollection->addUser(UserFactory::createUser("admin", "Charlie"));
+
+//Use built-in functions to modify data
 $users =  array_map(function($user) {
     return [
-        "name" => strtoupper($user["name"]), // Convert name to uppercaase
-        "age" => $user["age"],
-        "country" => ucfirst($user["country"]) // Capitalize first letter
+        "name" => strtoupper($user["name"]),
+        "role" => $user["role"]
     ];
-}, $users);
+}, $userCollection->getUsers());
+//Convert to Json for Javascript
+echo "<script>let users = " . json_encode($users) . ";</script>";
 ?>
 
 <script>
-//Step 7: Use JavaScript to manipulate and display the data
+//Use JavaScript to manipulate and display the data
 document.addEventListener("DOMContentLoaded", function () {
     let tableBody = document.getElementById("userTable");
 
     users.forEach(user => {
         let row = `<tr>
         <td>${user.name}</td>
-        <td>${user.age}</td>
-        <td>${user.country}</td>
+        <td>${user.role}</td>
         </tr>`;
         tableBody.innerHTML += row;
     });
